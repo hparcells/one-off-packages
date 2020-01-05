@@ -1,12 +1,18 @@
 import { randomOf } from '@reverse/random';
 import { removeAt, unique } from '@reverse/array';
 
+/** The size options of the word search. */
 interface WordSearchSize {
+  /** The width of the word search. */
   width: number;
+  /** The height of the word search. */
   height: number;
 }
+/** Options for generation of the word search. */
 interface WordSearchGenerationOptions {
+  /** The target word, and the letters to include in the word search. */
   word: string;
+  /** The size options of the word search. */
   size: WordSearchSize;
 }
 
@@ -18,6 +24,11 @@ interface WordSearchAnswer {
   direction: Direction;
 }
 
+/**
+ * Generates a word search with the letters of the target word.
+ * @param options Options for generation of the word search.
+ * @param maxAttemps The maximum number of attemps to generate a valid word search.
+ */
 export function generateTerribleWordSearch(options: WordSearchGenerationOptions, maxAttemps: number): string[][] {
   // Check if we have a word with two characters or less.
   if(options.word.length < 3) {
