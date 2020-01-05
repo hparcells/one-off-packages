@@ -1,0 +1,24 @@
+{
+  "name": "one-off-packages",
+  "private": true,
+  "scripts": {
+    "build": "rollup -c",
+    "upload": "rollup -c && jest && lerna publish",
+    "test": "rollup -c && jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
+  },
+  "dependencies": {
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-typescript2": "^0.25.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.25",
+    "@types/node": "^13.1.4",
+    "coveralls": "^3.0.9",
+    "jest": "^24.9.0",
+    "lerna": "^3.15.0",
+    "rollup": "^1.27.14",
+    "ts-jest": "^24.2.0",
+    "typescript": "^3.7.4"
+  }
+}

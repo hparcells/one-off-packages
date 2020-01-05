@@ -1,0 +1,300 @@
+import { randomOf } from '@reverse/random';
+import { removeAt, unique } from '@reverse/array';
+
+interface WordSearchSize {
+  width: number;
+  height: number;
+}
+interface WordSearchGenerationOptions {
+  word: string;
+  size: WordSearchSize;
+}
+
+type Direction = 'UP' | 'UP_RIGHT' | 'RIGHT' | 'DOWN_RIGHT' | 'DOWN' | 'DOWN_LEFT' | 'LEFT' | 'UP_LEFT';
+
+interface WordSearchAnswer {
+  x: number;
+  y: number;
+  direction: Direction;
+}
+
+export function generateTerribleWordSearch(options: WordSearchGenerationOptions, maxAttemps: number): string[][] {
+  // Check if we have a word with two characters or less.
+  if(options.word.length < 3) {
+    throw new Error('Cannot generate a word search with a word less than three characters.');
+  }
+  // Check if we can generate a word search where the word actually fits in it.
+  if(
+    (
+      (options.word.length > options.size.height && options.word.length < options.size.width)
+      && (options.word.length > options.size.width && options.word.length < options.size.height)
+    )
+    || options.word.length > options.size.width && options.word.length > options.size.height
+  ) {
+    throw new Error('Cannot generate a word seach with the word bigger than the dimensions.');
+  }
+
+  // Set some values we need later on.
+  let wordSearch: string[][] = [];
+
+  let occurances = 0;
+  let attempts = 0;
+  let answers: WordSearchAnswer[] = [];
+  // Check if the word is spelled the same backwards and forwards.
+  const hasMirror = options.word === options.word.split('').reverse().join('');
+
+  // Generate a word search, and keep generating them for 7500 times until we get a word search with one occurance of the word.
+  do {
+    // Reset occurances count.
+    occurances = 0;
+
+    // Reset answers.
+    answers = [];
+
+    // Fill the array.
+    wordSearch = [];
+    for(let row = 0; row < options.size.height; row++) {
+      wordSearch.push([]);
+      for(let letter = 0; letter < options.size.width; letter++) {
+        wordSearch[row][letter] = randomOf(unique(options.word.split('')));
+      }
+    }
+
+    // Check the number of occurances of the word.
+    // For each row...
+    wordSearch.forEach((row, rowIndex) => {
+      // For each letter...
+      row.forEach((letter, letterIndex) => {
+        let lettersToCheckFor = options.word.split('');
+
+        // Check if we need to continue the search.
+        if(letter === lettersToCheckFor[0]) {
+          lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+
+          let stopCheck = false;
+          let lettersChecked = options.word.length - lettersToCheckFor.length;
+
+          // Check if the letter above us is the next letter.
+          if(rowIndex + 1 >= options.word.length) {
+            stopCheck = false;
+            lettersToCheckFor = removeAt(options.word.split(''), 0);
+            lettersChecked = options.word.length - lettersToCheckFor.length;
+
+            do {
+              if(wordSearch[rowIndex - lettersChecked][letterIndex] === lettersToCheckFor[0]) {
+                lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+                lettersChecked = options.word.length - lettersToCheckFor.length;
+              }else {
+                stopCheck = true;
+              }
+            }while(lettersChecked !== options.word.length && !stopCheck);
+
+            if(lettersChecked === options.word.length) {
+              occurances++;
+
+              answers.unshift({
+                x: letterIndex + 1,
+                y: rowIndex + 1,
+                direction: 'UP'
+              });
+            }
+          }
+          // Check if the letter to the right of us is the next letter.
+          if((row.length - letterIndex) >= options.word.length) {
+            stopCheck = false;
+            lettersToCheckFor = removeAt(options.word.split(''), 0);
+            lettersChecked = options.word.length - lettersToCheckFor.length;
+
+            do {
+              if(wordSearch[rowIndex][letterIndex + lettersChecked] === lettersToCheckFor[0]) {
+                lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+                lettersChecked = options.word.length - lettersToCheckFor.length;
+              }else {
+                stopCheck = true;
+              }
+            }while(lettersChecked !== options.word.length && !stopCheck);
+
+            if(lettersChecked === options.word.length) {
+              occurances++;
+
+              answers.unshift({
+                x: letterIndex + 1,
+                y: rowIndex + 1,
+                direction: 'RIGHT'
+              });
+            }
+          }
+          // Check if the letter below us is the next letter.
+          if((wordSearch.length - rowIndex) >= options.word.length) {
+            stopCheck = false;
+            lettersToCheckFor = removeAt(options.word.split(''), 0);
+            lettersChecked = options.word.length - lettersToCheckFor.length;
+
+            do {
+              if(wordSearch[rowIndex + lettersChecked][letterIndex] === lettersToCheckFor[0]) {
+                lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+                lettersChecked = options.word.length - lettersToCheckFor.length;
+              }else {
+                stopCheck = true;
+              }
+            }while(lettersChecked !== options.word.length && !stopCheck);
+
+            if(lettersChecked === options.word.length) {
+              occurances++;
+
+              answers.unshift({
+                x: letterIndex + 1,
+                y: rowIndex + 1,
+                direction: 'DOWN'
+              });
+            }
+          }
+          // Check if the letter to the left of us is the next letter.
+          if(letterIndex + 1 >= options.word.length) {
+            stopCheck = false;
+            lettersToCheckFor = removeAt(options.word.split(''), 0);
+            lettersChecked = options.word.length - lettersToCheckFor.length;
+
+            do {
+              if(wordSearch[rowIndex][letterIndex - lettersChecked] === lettersToCheckFor[0]) {
+                lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+                lettersChecked = options.word.length - lettersToCheckFor.length;
+              }else {
+                stopCheck = true;
+              }
+            }while(lettersChecked !== options.word.length && !stopCheck);
+
+            if(lettersChecked === options.word.length) {
+              occurances++;
+
+              answers.unshift({
+                x: letterIndex + 1,
+                y: rowIndex + 1,
+                direction: 'LEFT'
+              });
+            }
+          }
+
+          // Check if the letter above us and to the right is the next letter.
+          if(rowIndex + 1 >= options.word.length && (row.length - letterIndex) >= options.word.length) {
+            stopCheck = false;
+            lettersToCheckFor = removeAt(options.word.split(''), 0);
+            lettersChecked = options.word.length - lettersToCheckFor.length;
+
+            do {
+              if(wordSearch[rowIndex - lettersChecked][letterIndex + lettersChecked] === lettersToCheckFor[0]) {
+                lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+                lettersChecked = options.word.length - lettersToCheckFor.length;
+              }else {
+                stopCheck = true;
+              }
+            }while(lettersChecked !== options.word.length && !stopCheck);
+
+            if(lettersChecked === options.word.length) {
+              occurances++;
+
+              answers.unshift({
+                x: letterIndex + 1,
+                y: rowIndex + 1,
+                direction: 'UP_RIGHT'
+              });
+            }
+          }
+          // Check if the letter below us and to the right is the next letter.
+          if((wordSearch.length - rowIndex) >= options.word.length && (row.length - letterIndex) >= options.word.length) {
+            stopCheck = false;
+            lettersToCheckFor = removeAt(options.word.split(''), 0);
+            lettersChecked = options.word.length - lettersToCheckFor.length;
+
+            do {
+              if(wordSearch[rowIndex + lettersChecked][letterIndex + lettersChecked] === lettersToCheckFor[0]) {
+                lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+                lettersChecked = options.word.length - lettersToCheckFor.length;
+              }else {
+                stopCheck = true;
+              }
+            }while(lettersChecked !== options.word.length && !stopCheck);
+
+            if(lettersChecked === options.word.length) {
+              occurances++;
+
+              answers.unshift({
+                x: letterIndex + 1,
+                y: rowIndex + 1,
+                direction: 'DOWN_RIGHT'
+              });
+            }
+          }
+          // Check if the letter below us and to the left is the next letter.
+          if((wordSearch.length - rowIndex) >= options.word.length && letterIndex + 1 >= options.word.length) {
+            stopCheck = false;
+            lettersToCheckFor = removeAt(options.word.split(''), 0);
+            lettersChecked = options.word.length - lettersToCheckFor.length;
+
+            do {
+              if(wordSearch[rowIndex + lettersChecked][letterIndex - lettersChecked] === lettersToCheckFor[0]) {
+                lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+                lettersChecked = options.word.length - lettersToCheckFor.length;
+              }else {
+                stopCheck = true;
+              }
+            }while(lettersChecked !== options.word.length && !stopCheck);
+
+            if(lettersChecked === options.word.length) {
+              occurances++;
+
+              answers.unshift({
+                x: letterIndex + 1,
+                y: rowIndex + 1,
+                direction: 'DOWN_LEFT'
+              });
+            }
+          }
+          // Check if the letter above us and to the left is the next letter.
+          if(rowIndex + 1 >= options.word.length && letterIndex + 1 >= options.word.length) {
+            stopCheck = false;
+            lettersToCheckFor = removeAt(options.word.split(''), 0);
+            lettersChecked = options.word.length - lettersToCheckFor.length;
+
+            do {
+              if(wordSearch[rowIndex - lettersChecked][letterIndex - lettersChecked] === lettersToCheckFor[0]) {
+                lettersToCheckFor = removeAt(lettersToCheckFor, 0);
+                lettersChecked = options.word.length - lettersToCheckFor.length;
+              }else {
+                stopCheck = true;
+              }
+            }while(lettersChecked !== options.word.length && !stopCheck);
+
+            if(lettersChecked === options.word.length) {
+              occurances++;
+
+              answers.unshift({
+                x: letterIndex + 1,
+                y: rowIndex + 1,
+                direction: 'UP_LEFT'
+              });
+            }
+          }
+        }
+      });
+
+      // Divide the occurences in half if the word is spelled the same forwards and backwards.
+      if(hasMirror && rowIndex + 1 === wordSearch.length) {
+        occurances /= 2;
+      }
+    });
+
+    attempts++;
+  }while(occurances !== 1 && attempts !== maxAttemps);
+
+  if(attempts === maxAttemps) {
+    throw new Error('Took too long to generate a word search.');
+  }
+
+  // tslint:disable-next-line: no-console
+  console.log(
+    `Finished with ${attempts} attempts with ${options.word} at (${answers[0].x}, ${answers[0].y}) going ${answers[0].direction}.
+  `);
+
+  return wordSearch;
+}

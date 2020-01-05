@@ -1,0 +1,19 @@
+{
+  "name": "terrible-word-search",
+  "version": "0.0.0",
+  "description": "Generate terrible word searches.",
+  "homepage": "",
+  "license": "MIT",
+  "dependencies": {
+    "@reverse/array": "^1.7.3",
+    "@reverse/random": "^1.0.12"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "*.js",
+    "*.js.map",
+    "*.d.ts"
+  ]
+}
